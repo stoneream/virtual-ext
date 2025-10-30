@@ -1,3 +1,5 @@
+autowatch = 1;
+
 /*
   LiveAPIのコールバックはクラスのインスタンスが生成されたタイミングと設定したプロパティが変化したタイミングで呼ばれる。
   この「インスタンスが生成されたタイミング」でコールバックが呼ばれることを回避したい。
@@ -15,20 +17,21 @@ class LiveObjectObserver {
   #logger = new Logger("LiveObjectObserver");
 
   constructor(path, property, handler) {
-    /*
-      LiveAPIのインスタンスが生成されたタイミングで、引数に与えたコールバックが呼ばれる。
-      そのためハンドラを先に代入しないと、コールバックが呼ばれた際に参照エラーが発生してしまう点に注意。
-      */
-    this.#handler = handler;
-
     this.#api = new LiveAPI(() => this.#callback(), path);
     this.#api.property = property;
+    this.#handler = handler;
 
     // 初期状態を保存
-    this.#previousState = this.#api.get(property);
+    if (property) {
+      this.#previousState = this.#api.getstring(property);
+    }
   }
 
   #callback() {
+    if (!this.#callback) {
+      return;
+    }
+
     /*
       コールバックはLiveAPIのインスタンスが生成された瞬間に呼ばれる。
       初期状態の代入よりも先に呼ばれる場合に処理をスキップする。
@@ -37,24 +40,60 @@ class LiveObjectObserver {
       return;
     }
 
-    const currentState = this.#api.get(this.#api.property);
-
-    const previousStateJSON = JSON.stringify(this.#previousState);
-    const currentStateJSON = JSON.stringify(currentState);
+    const currentState = this.#api.getstring(this.#api.property);
 
     // 状態に変化がない場合はスキップする
-    if (previousStateJSON === currentStateJSON) {
+    if (this.#previousState === currentState) {
       return;
     }
+
+    const diff = this.#diff(this.#previousState, currentState);
 
     const logProperty = {
       path: this.#api.path,
       property: this.#api.property,
-      previousState: previousStateJSON,
-      currentState: currentStateJSON,
+      addedIds: diff.addedIds,
+      removedIds: diff.removedIds,
     };
+
     this.#logger.info("detected state change", logProperty);
 
-    this.#handler(this.#api);
+    this.#handler(diff);
+  }
+
+  #diff(previousState, currentState) {
+    const prevIds = previousState.split(" ").filter((part) => part !== "id");
+    const currIds = currentState.split(" ").filter((part) => part !== "id");
+
+    const prevSet = new Set(prevIds);
+    const currSet = new Set(currIds);
+
+    const addedIds = [...currSet].filter((id) => !prevSet.has(id));
+    const removedIds = [...prevSet].filter((id) => !currSet.has(id));
+
+    const diff = new Diff(addedIds, removedIds);
+
+    return diff;
+  }
+
+  get api() {
+    return this.#api;
+  }
+}
+
+class Diff {
+  #addedIds = [];
+  #removedIds = [];
+
+  constructor(addedIds, removedIds) {
+    this.#addedIds = addedIds;
+    this.#removedIds = removedIds;
+  }
+
+  get addedIds() {
+    return this.#addedIds;
+  }
+  get removedIds() {
+    return this.#removedIds;
   }
 }
