@@ -38,4 +38,3 @@ bpatchである。
 値の更新通知
 
 `knob_group <knob_group_number> knob1_umenu_index <umenu_selected_index>`
-
