@@ -10,47 +10,10 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 172.0, 258.0, 1822.0, 1018.0 ],
+		"rect" : [ 42.0, 325.0, 1398.0, 1018.0 ],
 		"openinpresentation" : 1,
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
-				"box" : 				{
-					"id" : "obj-2",
-					"linecount" : 7,
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 1218.0, 63.0, 384.307733297348022, 105.0 ],
-					"presentation_linecount" : 7,
-					"text" : "メッセージ送信\n\nknob_master_bus\n\nメッセージの受信\n\nknob_master_bus_notification"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-16",
-					"linecount" : 10,
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 755.0, 63.0, 456.307733297348022, 144.0 ],
-					"text" : "umenu\n\n値の設定\n基本的にumenuのコマンドを送りつける形になっている\n\nknob_group <knob_group_number> knob1_umenu_msg <umenu_message>\n\n値の更新通知\n\nknob_group <knob_group_number> knob1_umenu_index <umenu_selected_index>"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-7",
-					"linecount" : 9,
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 364.692266702651978, 61.925924158096308, 384.307733297348022, 132.0 ],
-					"text" : "ノブ\n\n値の設定\n\nknob_group <knob_group_number> knob1_dial_value <value>\n\n値の更新通知\n\nknob_group <knob_group_number> knob1_dial_value <value>"
-				}
-
-			}
-, 			{
 				"box" : 				{
 					"id" : "obj-40",
 					"maxclass" : "message",
@@ -299,18 +262,6 @@
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 273.0, 427.0, 233.0, 22.0 ],
 					"text" : "prepend knob_group #1 knob2_dial_value"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-6",
-					"linecount" : 2,
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 364.692266702651978, 15.0, 149.259267151355743, 36.0 ],
-					"text" : "bpatch 引数\n1: ノブグループ番"
 				}
 
 			}
