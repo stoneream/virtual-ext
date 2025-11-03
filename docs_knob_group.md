@@ -26,7 +26,7 @@ bpatchである。
 
 値の更新通知
 
-`knob_group <knob_group_number> knob1_dial_value <value>`
+`knob_master_bus_notification knob_group <knob_group_number> knob_dial_number <nob_dial_number> _value <value>`
 
 ### umenu
 
@@ -37,4 +37,4 @@ bpatchである。
 
 値の更新通知
 
-`knob_group <knob_group_number> knob1_umenu_index <umenu_selected_index>`
+`knob_master_bus_notification knob_group <knob_group_number> knob_umenu_number <knob_umenu_number> index <umenu_selected_index>`
