@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 58.0, 182.0, 1846.0, 1018.0 ],
+		"rect" : [ 182.0, 277.0, 1846.0, 1018.0 ],
 		"openinpresentation" : 1,
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
@@ -33,7 +33,6 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 1455.0, 45.0, 213.0, 22.0 ],
-					"presentation_linecount" : 2,
 					"text" : "knob_umenu_all_msg append banana"
 				}
 
