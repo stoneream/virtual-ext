@@ -2,6 +2,11 @@ class Track {
   #api;
   #meta;
 
+  /*
+  IDをキーに子デバイスのインスタンスを持つ
+  */
+  #childrenTrackDevices = new Map();
+
   constructor(path) {
     this.#api = new LiveAPI(path);
 
@@ -15,6 +20,22 @@ class Track {
   }
   get meta() {
     return this.#meta;
+  }
+
+  get childrenTrackDevices() {
+    return this.#childrenTrackDevices;
+  }
+
+  getTrackDeviceById(deviceId) {
+    return this.#childrenTrackDevices.get(deviceId);
+  }
+
+  addTrackDeviceById(trackDevice) {
+    this.#childrenTrackDevices.set(trackDevice.deviceId, trackDevice);
+  }
+
+  removeTrackDeviceById(deviceId) {
+    this.#childrenTrackDevices.delete(deviceId);
   }
 }
 

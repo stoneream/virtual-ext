@@ -6,7 +6,7 @@ include("header.js");
 const logger = new Logger("observer");
 
 const InletHandlers = {
-  0: handleCommand,
+  0: handleRawCommand,
 };
 
 function anything() {
@@ -28,7 +28,7 @@ function emitEvent(payload) {
   }
 }
 
-function handleCommand(payload) {
+function handleRawCommand(payload) {
   switch (payload.name) {
     case "knob_master_bus_notification":
       handleKnobMasterBusNotification(payload.args);
