@@ -1,41 +1,76 @@
 class Track {
-  #api;
-  #meta;
-
-  /*
+  constructor(path) {
+    this.api = new LiveAPI(path);
+    this.id = this.api.id;
+    /*
   IDをキーに子デバイスのインスタンスを持つ
   */
-  #childrenTrackDevices = new Map();
+    this.childrenTrackDevices = new Map();
 
-  constructor(path) {
-    this.#api = new LiveAPI(path);
+    const name = this.api.get("name");
+    const color = this.api.get("color");
+    this.meta = new TrackMeta(name, color);
 
-    const name = this.#api.get("name");
-    const color = this.#api.get("color");
-    this.#meta = new TrackMeta(name, color);
-  }
+    // 子デバイスを監視する
+    this.childrenDeviceObserver = new LiveObjectObserver(
+      this.api.path,
+      "devices",
+      (diff) => this.handeleDeviceChange(diff)
+    ).api;
 
-  get api() {
-    return this.#api;
-  }
-  get meta() {
-    return this.#meta;
-  }
+    // インスタンス生成時（初期）状態でのデバイスを取得する
+    const deviceIds = this.childrenDeviceObserver
+      .getstring("devices")
+      .split(" ")
+      .filter((part) => part !== "id");
 
-  get childrenTrackDevices() {
-    return this.#childrenTrackDevices;
+    deviceIds.forEach((deviceId) => {
+      this.addTrackDeviceById(new TrackDevice(`id ${deviceId}`, this.api.id));
+    });
+
+    const devicesString = this.childrenDeviceObserver.getstring("devices");
+    logger.info("Initialized track", {
+      trackId: this.api.id,
+      trackName: this.meta.name,
+      trackColor: this.meta.color,
+      devices: devicesString,
+    });
   }
 
   getTrackDeviceById(deviceId) {
-    return this.#childrenTrackDevices.get(deviceId);
+    return this.childrenTrackDevices.get(deviceId);
   }
 
   addTrackDeviceById(trackDevice) {
-    this.#childrenTrackDevices.set(trackDevice.deviceId, trackDevice);
+    this.childrenTrackDevices.set(trackDevice.deviceId, trackDevice);
   }
 
   removeTrackDeviceById(deviceId) {
-    this.#childrenTrackDevices.delete(deviceId);
+    this.childrenTrackDevices.delete(deviceId);
+  }
+
+  handeleDeviceChange(diff) {
+    logger.info("Track device change detected", diff, { trackId: this.api.id });
+
+    // デバイスの追加
+    diff.addedIds.forEach((deviceId) => {
+      this.addTrackDeviceById(new TrackDevice(`id ${deviceId}`, this.api.id));
+
+      logger.info("Device added", {
+        deviceId: deviceId,
+        trackId: this.api.id,
+      });
+    });
+
+    // デバイスの削除
+    diff.removedIds.forEach((deviceId) => {
+      track.removeTrackDeviceById(deviceId);
+
+      logger.info("Device removed", {
+        deviceId: deviceId,
+        trackId: this.api.id,
+      });
+    });
   }
 }
 

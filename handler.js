@@ -56,13 +56,13 @@ function knobDialCommandHandler(message) {}
 
 function knobMenuCommandHandler(message) {}
 
-/*
-トラックIDがキー
-*/
-const trackState = new Map();
-
 // 検証用
 function init() {
+  /*
+  トラックIDがキー
+  */
+  const trackState = new Map();
+
   // ライブセットのトラックを監視
   const liveSetApi = new LiveObjectObserver(
     "live_set",
@@ -83,97 +83,42 @@ function init() {
       }
     });
 
-  logger.info(`Initial tracks loaded: ${trackState.size}`);
+  logger.info("Track IDs:", Array.from(trackState.keys()));
 
-  // debug dump
-  trackState.forEach((track, trackId) => {
-    const meta = track.meta;
-    logger.info(
-      `Track ID: ${trackId}, Name: ${meta.name}, Color: ${meta.color}`
-    );
-  });
+  /**
+   * ライブセットのトラックの変更を監視するハンドラ
+   * 更新されたトラックを状態管理に反映する
+   */
+  function liveSetTrackChangeHandler(diff) {
+    logger.info("Live set track change detected");
 
-  // 起動時点のトラックのデバイスを取得し監視する
-  trackState.forEach((track, trackId) => {
-    const trackApi = track.api;
-    const devicesObserver = new LiveObjectObserver(
-      trackApi.path,
-      "devices",
-      (diff) => trackDeviceChangeHandler(trackId, diff)
-    ).api;
+    // トラックの追加
+    diff.addedIds.forEach((trackId) => {
+      const trackPath = `id ${trackId}`;
+      const track = new Track(trackPath);
+      trackState.set(trackId, track);
 
-    const devicesString = devicesObserver.getstring("devices");
-    logger.info(`Track ID: ${trackId}, Devices: ${devicesString}`);
-  });
-}
+      logger.info("Track added", {
+        trackId: trackId,
+        trackName: track.meta.name,
+        trackColor: track.meta.color,
+      });
+    });
 
-/**
- * ライブセットのトラックの変更を監視するハンドラ
- * 更新されたトラックを状態管理に反映する
- */
-function liveSetTrackChangeHandler(diff) {
-  logger.info("Live set track change detected");
+    // トラックの削除
+    diff.removedIds.forEach((trackId) => {
+      trackState.delete(trackId);
+      logger.info("Track removed", { trackId: trackId });
+    });
 
-  // トラックの追加
-  diff.addedIds.forEach((trackId) => {
-    const trackPath = `id ${trackId}`;
-    const track = new Track(trackPath);
-    trackState.set(trackId, track);
-
-    logger.info(`Track added: ID ${trackId}, Name: ${track.meta.name}`);
-  });
-
-  // トラックの削除
-  diff.removedIds.forEach((trackId) => {
-    trackState.delete(trackId);
-    logger.info(`Track removed: ID ${trackId}`);
-  });
-
-  // デバッグ用の状態ダンプ
-  logger.info(`Current tracks count: ${trackState.size}`);
-  trackState.forEach((track, trackId) => {
-    const meta = track.meta;
-    logger.info(
-      `Track ID: ${trackId}, Name: ${meta.name}, Color: ${meta.color}`
-    );
-  });
-}
-
-function trackDeviceChangeHandler(trackId, diff) {
-  logger.info("Track device change detected");
-
-  const track = trackState.get(trackId);
-  if (!track) {
-    logger.error(`Track not found for ID: ${trackId}`);
-    return;
+    trackState.forEach((track, trackId) => {
+      logger.info("Current track", {
+        trackId: trackId,
+        trackName: track.meta.name,
+        trackColor: track.meta.color,
+      });
+    });
   }
-
-  // デバイスの追加
-  diff.addedIds.forEach((deviceId) => {
-    const devicePath = `id ${deviceId}`;
-    const trackDevice = new TrackDevice(devicePath, trackId);
-    track.addTrackDeviceById(trackDevice);
-    logger.info(
-      `Device added: ID ${deviceId}, Name: ${trackDevice.meta.name}, Track ID: ${trackId}`
-    );
-  });
-
-  // デバイスの削除
-  diff.removedIds.forEach((deviceId) => {
-    track.removeTrackDeviceById(deviceId);
-    logger.info(`Device removed: ID ${deviceId}, Track ID: ${trackId}`);
-  });
-
-  // デバッグ用の状態ダンプ
-  logger.info(
-    `Current devices for Track ID ${trackId}: ${track.childrenTrackDevices.size}`
-  );
-  track.childrenTrackDevices.forEach((device, deviceId) => {
-    const meta = device.meta;
-    logger.info(
-      `Device ID: ${deviceId}, Name: ${meta.name}, Track ID: ${trackId}`
-    );
-  });
 }
 
 init();
