@@ -31,7 +31,7 @@ function handleJsonCommand(payload) {
   try {
     const message = JSON.parse(payload.name);
 
-    if (message.eventType) {
+    if (!message.eventType) {
       return;
     }
 
@@ -57,6 +57,23 @@ function knobDialCommandHandler(message) {}
 function knobMenuCommandHandler(message) {}
 
 // 検証用
+// TODO 初期化直後に値が取れない場合があるため安定するまでリトライを入れる
+/*
+エラー例
+v8: handler.js: TypeError: liveSetApi.getstring(...).split is not a function, line 76
+v8: Source line:     .split(" ")
+v8: Stack Trace:
+TypeError: liveSetApi.getstring(...).split is not a function
+    at init (handler.js:76:6)
+    at handler.js:124:1
+v8: 2025-11-05T11:18:34.283Z [INFO] main: Starting main function  
+v8: research.js: TypeError: liveSetApi.getstring(...).split is not a function, line 45
+v8: Source line:     .split(" ")
+v8: Stack Trace:
+TypeError: liveSetApi.getstring(...).split is not a function
+    at main (research.js:45:6)
+    at research.js:57:1
+*/
 function init() {
   /*
   トラックIDがキー
