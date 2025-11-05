@@ -26,7 +26,7 @@ class LiveObjectObserver {
   }
 
   #callback() {
-    if (!this.#callback) {
+    if (!this.#handler) {
       return;
     }
 
@@ -34,7 +34,7 @@ class LiveObjectObserver {
       コールバックはLiveAPIのインスタンスが生成された瞬間に呼ばれる。
       初期状態の代入よりも先に呼ばれる場合に処理をスキップする。
       */
-    if (!this.#previousState) {
+    if (this.#previousState == null || this.#previousState === undefined) {
       return;
     }
 
@@ -46,6 +46,9 @@ class LiveObjectObserver {
     }
 
     const diff = this.#diff(this.#previousState, currentState);
+
+    // 状態を更新
+    this.#previousState = currentState;
 
     const logProperty = {
       path: this.#api.path,
@@ -60,8 +63,18 @@ class LiveObjectObserver {
   }
 
   #diff(previousState, currentState) {
-    const prevIds = previousState.split(" ").filter((part) => part !== "id");
-    const currIds = currentState.split(" ").filter((part) => part !== "id");
+    const prevIds =
+      previousState.trim() === ""
+        ? []
+        : previousState
+            .split(" ")
+            .filter((part) => part !== "id" && part.trim() !== "");
+    const currIds =
+      currentState.trim() === ""
+        ? []
+        : currentState
+            .split(" ")
+            .filter((part) => part !== "id" && part.trim() !== "");
 
     const prevSet = new Set(prevIds);
     const currSet = new Set(currIds);
