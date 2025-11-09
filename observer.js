@@ -1,13 +1,18 @@
 autowatch = 1;
 outlets = 1;
-inlets = 1;
+inlets = 2;
 
 include("header.js");
 const logger = new Logger("observer");
 
 const InletHandlers = {
-  0: handleRawCommand,
+  0: handleInitBang,
+  1: handleRawCommand,
 };
+
+function handleInitBang() {
+  logger.info("Initialization command received");
+}
 
 function anything() {
   emitEvent({

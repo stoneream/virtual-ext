@@ -1,16 +1,16 @@
 class Diff {
-  #addedIds = [];
-  #removedIds = [];
-
   constructor(addedIds, removedIds) {
-    this.#addedIds = addedIds;
-    this.#removedIds = removedIds;
+    this.addedIds = [];
+    this.removedIds = [];
+
+    this.addedIds = addedIds;
+    this.removedIds = removedIds;
   }
 
   get addedIds() {
-    return this.#addedIds;
+    return this.addedIds;
   }
   get removedIds() {
-    return this.#removedIds;
+    return this.removedIds;
   }
 }

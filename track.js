@@ -2,9 +2,8 @@ class Track {
   constructor(path) {
     this.api = new LiveAPI(path);
     this.id = this.api.id;
-    /*
-  IDをキーに子デバイスのインスタンスを持つ
-  */
+
+    // IDをキーに子デバイスのインスタンスを持つ
     this.childrenTrackDevices = new Map();
 
     const name = this.api.get("name");
@@ -25,7 +24,8 @@ class Track {
       .filter((part) => part !== "id");
 
     deviceIds.forEach((deviceId) => {
-      this.addTrackDeviceById(new TrackDevice(`id ${deviceId}`, this.api.id));
+      const trackDevice = new TrackDevice(`id ${deviceId}`, this.api.id);
+      this.addTrackDeviceById(trackDevice);
     });
 
     const devicesString = this.childrenDeviceObserver.getstring("devices");
@@ -75,18 +75,8 @@ class Track {
 }
 
 class TrackMeta {
-  #name;
-  #color;
-
   constructor(name, color) {
-    this.#name = name;
-    this.#color = color;
-  }
-
-  get name() {
-    return this.#name;
-  }
-  get color() {
-    return this.#color;
+    this.name = name;
+    this.color = color;
   }
 }

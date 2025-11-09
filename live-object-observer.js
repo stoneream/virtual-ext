@@ -1,68 +1,86 @@
 /*
-  LiveAPIのコールバックはクラスのインスタンスが生成されたタイミングと設定したプロパティが変化したタイミングで呼ばれる。
-  この「インスタンスが生成されたタイミング」でコールバックが呼ばれることを回避したい。
-  プロパティの状態を保持し、コールバックが呼ばれた際に比較を行う。
-  比較の結果、状態に変化があった場合のみハンドラを呼び出す仕組みを実現している。
+  このクラスは監視対象のオブジェクトの状態変化とその差分を検出することを目的としている。
+  （状態の差分を取得し保持することで差分を検出している。）
 
-  LiveAPIのインスタンスの存在チェックを行い、初期化フラグを用意する方法も考えられる。
-  JavaScriptのAPI自体はあくまでMaxへのブリッジのため、初期化の完了自体が保証されていない可能性がある。
-  （詳しい記述を見つけられなかったため断言することはできない。）
+  ただし、LivAPIのコールバックは以下のタイミングでコールバックが実行される。
+
+  - クラスがインスタンス化されたタイミング
+  - 監視対象（プロパティ）を設定したタイミング
+  - プロパティを設定したあとにもう一度発火する（この挙動は不明）
+  
+  上述のタイミングで実行されるコールバックを回避している。
   */
 class LiveObjectObserver {
-  #handler = null;
-  #api = null;
-  #previousState = null;
-  #logger = new Logger("LiveObjectObserver");
-
   constructor(path, property, handler) {
-    this.#api = new LiveAPI(() => this.#callback(), path);
-    this.#api.property = property;
-    this.#handler = handler;
+    this.logger = new Logger("LiveObjectObserver");
 
-    // 初期状態を保存
-    if (property) {
-      this.#previousState = this.#api.getstring(property);
-    }
+    // インスタンス生成直後のコールバック
+    this.initialized = false;
+    // プロパティ（監視対象）をセットした直後のコールバック
+    this.detectedPropertySet = false;
+    // 直前の状態保存
+    this.previousState = null;
+
+    this.api = new LiveAPI(() => this.callback, path);
+    this.api.property = property;
+    this.handler = handler;
   }
 
-  #callback() {
-    if (!this.#handler) {
+  callback() {
+    // ハンドラーがセットされていない場合は処理をスキップ
+    if (!this.handler) {
       return;
     }
 
-    /*
-      コールバックはLiveAPIのインスタンスが生成された瞬間に呼ばれる。
-      初期状態の代入よりも先に呼ばれる場合に処理をスキップする。
-      */
-    if (this.#previousState == null || this.#previousState === undefined) {
+    // インスタンス生成直後のコールバックをスキップ
+    if (!this.initialized) {
+      this.logger.info("LiveAPI initialized");
+      this.initialized = true;
       return;
     }
 
-    const currentState = this.#api.getstring(this.#api.property);
+    // プロパティセット直後のコールバックをスキップ
+    if (!this.detectedPropertySet) {
+      this.logger.info("Detected property set");
+      this.detectedPropertySet = true;
+      return;
+    }
+
+    // 初回状態保存
+    if (!this.previousState) {
+      this.logger.info("Storing initial state");
+      const currentState = this.api.getstring(this.api.property);
+      this.previousState = currentState;
+      return;
+    }
+
+    // 現在の状態を取得
+    const currentState = this.api.getstring(this.api.property);
 
     // 状態に変化がない場合はスキップする
-    if (this.#previousState === currentState) {
+    if (this.previousState === currentState) {
+      this.logger.info("No state change detected");
       return;
     }
 
-    const diff = this.#diff(this.#previousState, currentState);
-
-    // 状態を更新
-    this.#previousState = currentState;
+    this.logger.info("State change detected");
+    const diff = this.diff(this.previousState, currentState);
 
     const logProperty = {
-      path: this.#api.path,
-      property: this.#api.property,
+      path: this.api.path,
+      property: this.api.property,
       addedIds: diff.addedIds,
       removedIds: diff.removedIds,
     };
+    this.logger.info("Diff computed", logProperty);
 
-    this.#logger.info("detected state change", logProperty);
+    // 現在の状態を保存
+    this.previousState = currentState;
 
-    this.#handler(diff);
+    this.handler(diff);
   }
 
-  #diff(previousState, currentState) {
+  diff(previousState, currentState) {
     const prevIds =
       previousState.trim() === ""
         ? []
@@ -85,9 +103,5 @@ class LiveObjectObserver {
     const diff = new Diff(addedIds, removedIds);
 
     return diff;
-  }
-
-  get api() {
-    return this.#api;
   }
 }

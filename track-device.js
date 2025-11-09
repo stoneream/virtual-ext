@@ -1,37 +1,16 @@
 class TrackDevice {
-  #api;
-  #parentTrackId;
-  #meta;
-
   constructor(path, parentTrackId) {
-    this.#api = new LiveAPI(path);
+    this.api = new LiveAPI(path);
+    this.deviceId = this.api.id;
+    this.parentTrackId = parentTrackId;
 
-    const name = this.#api.get("name");
-    this.#parentTrackId = parentTrackId;
-    this.#meta = new TrackDeviceMeta(name);
-  }
-
-  get api() {
-    return this.#api;
-  }
-
-  get parentTrackId() {
-    return this.#parentTrackId;
-  }
-
-  get meta() {
-    return this.#meta;
+    const name = this.api.get("name");
+    this.meta = new TrackDeviceMeta(name);
   }
 }
 
 class TrackDeviceMeta {
-  #name;
-
   constructor(name) {
-    this.#name = name;
-  }
-
-  get name() {
-    return this.#name;
+    this.name = name;
   }
 }

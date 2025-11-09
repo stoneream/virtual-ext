@@ -1,61 +1,3 @@
-autowatch = 1;
-outlets = 1;
-inlets = 1;
-
-include("header.js");
-const logger = new Logger("handler");
-
-const InletHandlers = {
-  0: handleJsonCommand,
-};
-
-function anything() {
-  emitEvent({
-    type: "symbol",
-    name: messagename,
-    args: arrayfromargs(arguments),
-    inlet: inlet,
-  });
-}
-
-function emitEvent(payload) {
-  const handler = InletHandlers[payload.inlet];
-  if (handler) {
-    handler(payload);
-  } else {
-    logger.warn(`No handler for inlet ${payload.inlet}`);
-  }
-}
-
-function handleJsonCommand(payload) {
-  try {
-    const message = JSON.parse(payload.name);
-
-    if (!message.eventType) {
-      return;
-    }
-
-    // イベントタイプの分岐
-    switch (message.eventType) {
-      case "knob_dial":
-        knobDialCommandHandler(message);
-        break;
-      case "knob_menu":
-        knobMenuCommandHandler(message);
-        break;
-      default:
-        logger.warn(`Unknown event type: ${message.eventType}`);
-        return;
-    }
-  } catch (e) {
-    logger.error("Failed to parse JSON", e);
-  }
-}
-
-function knobDialCommandHandler(message) {}
-
-function knobMenuCommandHandler(message) {}
-
 // 検証用
 // TODO 初期化直後に値が取れない場合があるため安定するまでリトライを入れる
 /*
@@ -138,7 +80,7 @@ function init() {
   }
 }
 
-init();
+// init();
 
 /*
 動作テスト
