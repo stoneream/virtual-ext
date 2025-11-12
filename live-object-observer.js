@@ -21,12 +21,12 @@ class LiveObjectObserver {
     // 直前の状態保存
     this.previousState = null;
 
-    this.api = new LiveAPI(() => this.callback, path);
+    this.api = new LiveAPI(this._callback.bind(this), path);
     this.api.property = property;
     this.handler = handler;
   }
 
-  callback() {
+  _callback() {
     // ハンドラーがセットされていない場合は処理をスキップ
     if (!this.handler) {
       return;
@@ -64,7 +64,7 @@ class LiveObjectObserver {
     }
 
     this.logger.info("State change detected");
-    const diff = this.diff(this.previousState, currentState);
+    const diff = this._computeDiff(this.previousState, currentState);
 
     const logProperty = {
       path: this.api.path,
@@ -80,28 +80,23 @@ class LiveObjectObserver {
     this.handler(diff);
   }
 
-  diff(previousState, currentState) {
-    const prevIds =
-      previousState.trim() === ""
-        ? []
-        : previousState
-            .split(" ")
-            .filter((part) => part !== "id" && part.trim() !== "");
-    const currIds =
-      currentState.trim() === ""
-        ? []
-        : currentState
-            .split(" ")
-            .filter((part) => part !== "id" && part.trim() !== "");
+  _computeDiff(previousState, currentState) {
+    const parse = (s) =>
+      s.split(" ").filter((p) => p !== "id" && p.trim() !== "");
 
-    const prevSet = new Set(prevIds);
-    const currSet = new Set(currIds);
+    const prevIds = parse(previousState);
+    const currIds = parse(currentState);
 
-    const addedIds = [...currSet].filter((id) => !prevSet.has(id));
-    const removedIds = [...prevSet].filter((id) => !currSet.has(id));
+    const addedIds = currIds.filter((x) => !prevIds.includes(x));
+    const removedIds = prevIds.filter((x) => !currIds.includes(x));
 
     const diff = new Diff(addedIds, removedIds);
 
     return diff;
+  }
+
+  dispose() {
+    this.api = null;
+    this.handler = null;
   }
 }

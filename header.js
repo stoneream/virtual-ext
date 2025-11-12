@@ -1,5 +1,19 @@
+// Utilities
+
+include("diff.js");
 include("logger.js");
 include("live-object-observer.js");
-include("track.js");
-include("track-device.js");
-include("diff.js");
+
+// Supervisor Classes
+
+include("dispatcher.js");
+
+// Binding Classes
+
+include("binding_device_menu.js");
+include("binding_device.js");
+include("binding_knob.js");
+include("binding_live_set.js");
+include("binding_parameter.js");
+include("binding_track_menu.js");
+include("binding_track.js");
