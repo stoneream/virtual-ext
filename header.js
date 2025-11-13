@@ -1,5 +1,5 @@
 // Utilities
 
-include("diff.js");
-include("logger.js");
-include("live-object-observer.js");
+include("./util/diff.js");
+include("./util/logger.js");
+include("./util/live-object-observer.js");
