@@ -37,7 +37,6 @@ class BindingDevice {
     for (let i = 0; i < count; i++) {
       const path = `${this.path} parameters ${i}`;
       const param = new BindingParameter(this.dispatcher, path, i);
-      param.init();
       this.parameters.push(param);
     }
 
